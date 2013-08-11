@@ -120,6 +120,7 @@ class Player
     @jumpPos = null
     @posX = 0
     @posY = 2
+    @score = 0
 
   tick: ->
     if !@fallingPos? || @fallingPos < 4
@@ -130,23 +131,35 @@ class Player
       @sprite.changeState 'running'
       @fallingPos = null
 
+    hurdleIntersect = hurdles.get(@posX+1, @posX+2).length
+
     if @jumpPos?
       if @jumpPos < 4
         @jumpPos++
       else
         @jumpPos = null
+        if @jumpedOverHurdle && !hurdleIntersect
+          @addToScore 1
+          @jumpedOverHurdle = false
         @posY = 2
         @sprite.changeState 'running'
 
-    if hurdles.get(@posX+1, @posX+2).length
-      unless @jumpPos?
+    if hurdleIntersect
+      if @jumpPos?
+        @jumpedOverHurdle = true
+      else
         @fallingPos = 0
+        @jumpedOverHurdle = false
         @sprite.changeState 'falling'
         sounds.splat.play()
+        @score = 0
     else if @fallingPos?
       @fallingPos++
       if @fallingPos == 1
         @sprite.changeState 'fallen'
+
+  addToScore: (n) ->
+    @score += n
 
   jump: ->
     return if @jumpPos?
@@ -183,6 +196,10 @@ class Frame
         spriteFrameLines[i] +
         @lines[i+y].slice(x+spriteFrameLines[i].length)
 
+  drawRight: (y, spriteFrame) ->
+    width = spriteFrame.split('\n')[0].length
+    @draw @width - width, y, spriteFrame
+
   render: ->
     @lines.join('\n')
 
@@ -202,6 +219,9 @@ tick = ->
     frame.draw hurdle_x-player.posX-viewportX, 4, '#'
 
   frame.draw -viewportX, player.posY, playerSprite.currentFrame
+
+  frame.drawRight 1, "Score:           "
+  frame.drawRight 1, "#{player.score} "
 
   pre.innerText = frame.render()
 
