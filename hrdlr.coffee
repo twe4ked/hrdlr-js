@@ -10,6 +10,12 @@ sounds.intro.play()
 getRandomInt = (min, max) ->
   return Math.floor(Math.random() * (max - min + 1) + min)
 
+defaultName = "HURDLURR ##{getRandomInt(10000, 90000)}"
+name = localStorage.name || defaultName
+name = window.prompt 'Name:', name
+name = defaultName unless name.length
+localStorage.name = name
+
 class Sprite
   constructor: (@config) ->
     @frames = @config.frames
@@ -115,6 +121,8 @@ playerSprite = new Sprite
       'blank',
     ]
 
+websocket = new WebSocket("ws://#{location.host}/")
+
 class Player
   constructor: (@sprite) ->
     @jumpPos = null
@@ -141,6 +149,7 @@ class Player
         @jumpPos = null
         if @jumpedOverHurdle && !hurdleIntersect
           @addToScore 1
+          @sendScores()
           @jumpedOverHurdle = false
         @posY = 2
         @sprite.changeState 'running'
@@ -156,6 +165,7 @@ class Player
         if @score > @highScore
           @highScore = @score
         @score = 0
+        @sendScores()
     else if @fallingPos?
       @fallingPos++
       if @fallingPos == 1
@@ -167,6 +177,12 @@ class Player
     if oldScore < @highScore && @score >= @highScore
       sounds.high_score.play()
 
+  sendScores: ->
+    if websocket.readyState != 0
+      websocket.send JSON.stringify
+        name: localStorage.name
+        score: @score
+
   jump: ->
     return if @jumpPos?
     return if @fallingPos?
@@ -176,6 +192,34 @@ class Player
     sounds.jump.play()
 
 player = new Player(playerSprite)
+
+players = {}
+
+renderScores = ->
+  items = []
+  for name, data of players
+    items.push
+      name: name
+      score: data.score
+
+  items = items.sort (a, b) ->
+    switch true
+      when a.score == b.score
+        0
+      when a.score > b.score
+        -1
+      else
+        1
+
+  output = ''
+  for item in items
+    output += "#{item.name}: #{item.score}\n"
+  document.getElementById('scores').innerText = output
+
+websocket.onmessage = (message) ->
+  data = JSON.parse message.data
+  players[data.name] = data
+  renderScores()
 
 document.addEventListener 'keypress', (event) ->
   if event.keyCode == 32
