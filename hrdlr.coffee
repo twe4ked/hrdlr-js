@@ -2,6 +2,7 @@ sounds = {
   jump: new Audio('sounds/jump.m4a')
   intro: new Audio('sounds/intro.m4a')
   splat: new Audio('sounds/splat.m4a')
+  coin_get: new Audio('sounds/coin_get.m4a')
   high_score: new Audio('sounds/high_score.m4a')
 }
 
@@ -121,6 +122,27 @@ playerSprite = new Sprite
       'blank',
     ]
 
+coinSprite = new Sprite
+  frames:
+    normal: 'O'
+    back: '0'
+    side: '|'
+  states:
+    rotating: [
+      'normal',
+      'normal',
+      'normal',
+      'side',
+      'side',
+      'side',
+      'back',
+      'back',
+      'back',
+      'side',
+      'side',
+      'side',
+    ]
+
 websocket = new WebSocket("ws://#{location.host}/")
 
 class Player
@@ -145,6 +167,12 @@ class Player
     if @jumpPos?
       if @jumpPos < 4
         @jumpPos++
+        coinIntersects = coins.get(@posX+1, @posX+2)
+        if coinIntersects.length
+          coins.delete coinIntersects
+          sounds.coin_get.play()
+          @addToScore 1
+          @sendScores()
       else
         @jumpPos = null
         if @jumpedOverHurdle && !hurdleIntersect
@@ -257,17 +285,22 @@ class Frame
 frame = new Frame('frame', 80, 6)
 
 hurdles = new Items(50, 10, 20)
+coins = new Items(75, 20, 50)
 
 viewportX = -3
 
 tick = ->
   player.tick()
   playerSprite.tick()
+  coinSprite.tick()
 
   frame.clear()
 
   for hurdle_x in hurdles.get(0+player.posX+viewportX, 80+player.posX+viewportX)
     frame.draw hurdle_x-player.posX-viewportX, 4, '#'
+
+  for x in coins.get(0+player.posX+viewportX, 80+player.posX+viewportX)
+    frame.draw x-player.posX-viewportX, 1, coinSprite.currentFrame
 
   frame.draw -viewportX, player.posY, playerSprite.currentFrame
 
