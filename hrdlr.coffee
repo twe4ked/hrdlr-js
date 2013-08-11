@@ -3,6 +3,7 @@ sounds = {
   jump: new Audio('sounds/jump.m4a')
   intro: new Audio('sounds/intro.m4a')
   splat: new Audio('sounds/splat.m4a')
+  high_score: new Audio('sounds/high_score.m4a')
 }
 
 sounds.intro.play()
@@ -121,6 +122,7 @@ class Player
     @posX = 0
     @posY = 2
     @score = 0
+    @highScore = 0
 
   tick: ->
     if !@fallingPos? || @fallingPos < 4
@@ -152,6 +154,8 @@ class Player
         @jumpedOverHurdle = false
         @sprite.changeState 'falling'
         sounds.splat.play()
+        if @score > @highScore
+          @highScore = @score
         @score = 0
     else if @fallingPos?
       @fallingPos++
@@ -159,7 +163,10 @@ class Player
         @sprite.changeState 'fallen'
 
   addToScore: (n) ->
+    oldScore = @score
     @score += n
+    if oldScore < @highScore && @score >= @highScore
+      sounds.high_score.play()
 
   jump: ->
     return if @jumpPos?
@@ -220,8 +227,10 @@ tick = ->
 
   frame.draw -viewportX, player.posY, playerSprite.currentFrame
 
-  frame.drawRight 1, "Score:           "
-  frame.drawRight 1, "#{player.score} "
+  frame.drawRight 1, "High score:      "
+  frame.drawRight 1, "#{player.highScore} "
+  frame.drawRight 2, "Score:           "
+  frame.drawRight 2, "#{player.score} "
 
   pre.innerText = frame.render()
 
