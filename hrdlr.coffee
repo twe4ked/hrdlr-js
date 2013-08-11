@@ -1,4 +1,3 @@
-pre = document.querySelector('pre')
 sounds = {
   jump: new Audio('sounds/jump.m4a')
   intro: new Audio('sounds/intro.m4a')
@@ -186,7 +185,8 @@ document.addEventListener 'touchstart', ->
   player.jump()
 
 class Frame
-  constructor: (@width, @height) ->
+  constructor: (id, @width, @height) ->
+    @element = document.getElementById(id)
 
   clear: ->
     @lines = []
@@ -208,9 +208,9 @@ class Frame
     @draw @width - width, y, spriteFrame
 
   render: ->
-    @lines.join('\n')
+    @element.innerText = @lines.join('\n')
 
-frame = new Frame(80, 6)
+frame = new Frame('frame', 80, 6)
 
 hurdles = new Items(50, 10, 20)
 
@@ -232,7 +232,7 @@ tick = ->
   frame.drawRight 2, "Score:           "
   frame.drawRight 2, "#{player.score} "
 
-  pre.innerText = frame.render()
+  frame.render()
 
   setTimeout(tick, 100)
 
