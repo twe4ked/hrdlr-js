@@ -3,6 +3,7 @@ frame = null
 sounds = {
   jump: new Audio('sounds/jump.m4a')
   intro: new Audio('sounds/intro.m4a')
+  splat: new Audio('sounds/splat.m4a')
 }
 
 sounds.intro.play()
@@ -69,6 +70,25 @@ playerSprite = new Sprite
       /|
       ---
       '''
+    falling:
+      '''
+         o
+       </_
+      //
+      '''
+    fallen:
+      '''
+
+
+      \\_\\_o
+      '''
+    recovering:
+      '''
+        o
+      </-
+      /|
+      '''
+    blank: ''
   states:
     running: [
       'run1',
@@ -79,6 +99,22 @@ playerSprite = new Sprite
     jumping: [
       'jump',
     ]
+    falling: [
+      'falling',
+    ]
+    fallen: [
+      'fallen',
+    ]
+    recovering: [
+      'recovering',
+      'blank',
+      'recovering',
+      'blank',
+      'run1',
+      'blank',
+      'run1',
+      'blank',
+    ]
 
 class Player
   constructor: (@sprite) ->
@@ -87,7 +123,14 @@ class Player
     @posY = 2
 
   tick: ->
-    @posX++
+    if !@fallingPos? || @fallingPos < 4
+      @posX++
+    if @fallingPos == 8
+      @sprite.changeState 'recovering'
+    if @fallingPos >= 16
+      @sprite.changeState 'running'
+      @fallingPos = null
+
     if @jumpPos?
       if @jumpPos < 4
         @jumpPos++
@@ -96,8 +139,19 @@ class Player
         @posY = 2
         @sprite.changeState 'running'
 
+    if hurdles.get(@posX+1, @posX+2).length
+      unless @jumpPos?
+        @fallingPos = 0
+        @sprite.changeState 'falling'
+        sounds.splat.play()
+    else if @fallingPos?
+      @fallingPos++
+      if @fallingPos == 1
+        @sprite.changeState 'fallen'
+
   jump: ->
     return if @jumpPos?
+    return if @fallingPos?
     @jumpPos = 0
     @posY = 1
     @sprite.changeState 'jumping'
