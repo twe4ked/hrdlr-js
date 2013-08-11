@@ -2,7 +2,10 @@ pre = document.querySelector('pre')
 frame = null
 sounds = {
   jump: new Audio('sounds/jump.m4a')
+  intro: new Audio('sounds/intro.m4a')
 }
+
+sounds.intro.play()
 
 getRandomInt = (min, max) ->
   return Math.floor(Math.random() * (max - min + 1) + min)
