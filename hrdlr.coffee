@@ -1,5 +1,4 @@
 pre = document.querySelector('pre')
-frame = null
 sounds = {
   jump: new Audio('sounds/jump.m4a')
   intro: new Audio('sounds/intro.m4a')
@@ -166,37 +165,45 @@ document.addEventListener 'keypress', (event) ->
 document.addEventListener 'touchstart', ->
   player.jump()
 
-drawSprite = (spriteFrame, x, y) ->
-  spriteFrameLines = spriteFrame.split('\n')
-  for i in [0..spriteFrameLines.length-1]
-    frame[i+y] = frame[i+y].slice(0, x) + spriteFrameLines[i] + frame[i+y].slice(x+spriteFrameLines[i].length)
+class Frame
+  constructor: (@width, @height) ->
 
-clearFrame = ->
-  frame = [
-    new Array(81).join('-'),
-    new Array(81).join(' '),
-    new Array(81).join(' '),
-    new Array(81).join(' '),
-    new Array(81).join(' '),
-    new Array(81).join('-')
-  ]
+  clear: ->
+    @lines = []
+    @lines.push new Array(@width+1).join('-')
+    for i in [1..@height-2]
+      @lines.push new Array(@width+1).join(' ')
+    @lines.push new Array(@width+1).join('-')
+
+  draw: (x, y, spriteFrame) ->
+    spriteFrameLines = spriteFrame.split('\n')
+    for i in [0..spriteFrameLines.length-1]
+      @lines[i+y] =
+        @lines[i+y].slice(0, x) +
+        spriteFrameLines[i] +
+        @lines[i+y].slice(x+spriteFrameLines[i].length)
+
+  render: ->
+    @lines.join('\n')
+
+frame = new Frame(80, 6)
 
 hurdles = new Items(50, 10, 20)
 
 viewportX = -3
 
 tick = ->
-  clearFrame()
-
   player.tick()
   playerSprite.tick()
 
+  frame.clear()
+
   for hurdle_x in hurdles.get(0+player.posX+viewportX, 80+player.posX+viewportX)
-    drawSprite('#', hurdle_x-player.posX-viewportX, 4)
+    frame.draw hurdle_x-player.posX-viewportX, 4, '#'
 
-  drawSprite(playerSprite.currentFrame, -viewportX, player.posY)
+  frame.draw -viewportX, player.posY, playerSprite.currentFrame
 
-  pre.innerText = frame.join('\n')
+  pre.innerText = frame.render()
 
   setTimeout(tick, 100)
 
