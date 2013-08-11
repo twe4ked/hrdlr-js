@@ -206,7 +206,7 @@ class Player
       sounds.high_score.play()
 
   sendScores: ->
-    if websocket.readyState != 0
+    if websocket.readyState == 1
       websocket.send JSON.stringify
         name: localStorage.name
         score: @score
@@ -244,7 +244,7 @@ renderScores = ->
     output += "#{item.name}: #{item.score}\n"
   document.getElementById('scores').innerText = output
 
-websocket.onmessage = (message) ->
+onScoreMessage = (message) ->
   data = JSON.parse message.data
   players[data.name] = data
   renderScores()
@@ -255,6 +255,18 @@ document.addEventListener 'keypress', (event) ->
 
 document.addEventListener 'touchstart', ->
   player.jump()
+
+websocket = null
+
+reconnect = ->
+  websocket = new WebSocket("ws://#{location.host}/")
+  websocket.onmessage = onScoreMessage
+
+setInterval ->
+  unless websocket.readyState == 1
+    reconnect()
+, 5000
+reconnect()
 
 class Frame
   constructor: (id, @width, @height) ->
