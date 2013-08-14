@@ -148,8 +148,6 @@ coinSprite = new Sprite
       'side',
     ]
 
-websocket = new WebSocket("ws://#{location.host}/")
-
 class Player
   constructor: (@sprite) ->
     @jumpPos = null
@@ -211,10 +209,9 @@ class Player
       sounds.high_score.play()
 
   sendScores: ->
-    if websocket.readyState == 1
-      websocket.send JSON.stringify
-        name: localStorage.name
-        score: @score
+    socket.emit 'message', JSON.stringify
+      name: localStorage.name
+      score: @score
 
   jump: ->
     return if @jumpPos?
@@ -250,7 +247,7 @@ renderScores = ->
   setText document.getElementById('scores'), output
 
 onScoreMessage = (message) ->
-  data = JSON.parse message.data
+  data = JSON.parse message
   players[data.name] = data
   renderScores()
 
@@ -261,17 +258,9 @@ document.addEventListener 'keypress', (event) ->
 document.addEventListener 'touchstart', ->
   player.jump()
 
-websocket = null
-
-reconnect = ->
-  websocket = new WebSocket("ws://#{location.host}/")
-  websocket.onmessage = onScoreMessage
-
-setInterval ->
-  unless websocket.readyState == 1
-    reconnect()
-, 5000
-reconnect()
+socket = io.connect location.origin
+socket.on 'message', (data, callback) ->
+  onScoreMessage data
 
 class Frame
   constructor: (id, @width, @height) ->

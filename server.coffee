@@ -1,7 +1,6 @@
 http = require 'http'
 fs = require 'fs'
 path = require 'path'
-websocketss = require 'websocketss'
 
 server = http.createServer (request, response) ->
   path = request.url
@@ -17,9 +16,10 @@ server = http.createServer (request, response) ->
       response.setHeader 'Content-Length', info.size
       fs.createReadStream(file).pipe response
 
-wss = new websocketss.Server
-wss.on 'message', (message, wssocket) ->
-  wss.broadcast message
-wss.listen server
+io = require('socket.io').listen(server)
+io.sockets.on 'connection', (socket) ->
+  socket.on 'message', (data) ->
+    io.sockets.send data
 
-server.listen 4000
+port = process.env.PORT || 4000
+server.listen port
