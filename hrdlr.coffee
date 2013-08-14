@@ -8,6 +8,11 @@ sounds = {
 
 sounds.intro.play()
 
+setText = (element, text) ->
+  while element.firstChild
+    element.removeChild element.firstChild
+  element.appendChild document.createTextNode(text)
+
 getRandomInt = (min, max) ->
   return Math.floor(Math.random() * (max - min + 1) + min)
 
@@ -242,7 +247,7 @@ renderScores = ->
   output = ''
   for item in items
     output += "#{item.name}: #{item.score}\n"
-  document.getElementById('scores').innerText = output
+  setText document.getElementById('scores'), output
 
 onScoreMessage = (message) ->
   data = JSON.parse message.data
@@ -292,7 +297,7 @@ class Frame
     @draw @width - width, y, spriteFrame
 
   render: ->
-    @element.innerText = @lines.join('\n')
+    setText @element, @lines.join('\n')
 
 frame = new Frame('frame', 80, 6)
 
