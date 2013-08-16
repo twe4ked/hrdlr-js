@@ -30,7 +30,8 @@ server = http.createServer (request, response) ->
       else
         notFound response
     else
-      response.setHeader 'Accept-Ranges', 'bytes'
+      if extension == '.m4a'
+        response.setHeader 'Accept-Ranges', 'bytes'
       response.setHeader 'Content-Length', info.size
       fs.createReadStream(file).pipe response
 
