@@ -8,6 +8,15 @@ notFound = (response) ->
   response.write 'Not found\n'
   response.end()
 
+setContentTypeHeader = (response, extension) ->
+  extension = '.html' if extension == ''
+  type = {
+    '.html': 'text/html',
+    '.js': 'text/javascript',
+    '.m4a': 'audio/mp4',
+  }[extension]
+  response.setHeader 'Content-Type', type || 'text/plain'
+
 server = http.createServer (request, response) ->
   extension = path.extname request.url
   request_path = request.url
@@ -30,6 +39,7 @@ server = http.createServer (request, response) ->
       else
         notFound response
     else
+      setContentTypeHeader response, extension
       if extension == '.m4a'
         response.setHeader 'Accept-Ranges', 'bytes'
       response.setHeader 'Content-Length', info.size
