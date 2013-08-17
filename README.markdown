@@ -2,16 +2,11 @@
 
 Turn up your volume.
 
-``` sh
-coffee --compile *.coffee
-open index.html
-```
-
-## Server
+## Usage
 
 ``` sh
-npm install websocketss
-node server.js
+npm install
+node server.coffee
 ```
 
 By Odin Dutton and Jason Weathered.
