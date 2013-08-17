@@ -288,7 +288,30 @@ class Frame
   render: ->
     setText @element, @lines.join('\n')
 
-frame = new Frame('frame', 80, 6)
+frame = null
+
+windowWidth = null
+setWidth = ->
+  windowWidth = 0
+  widthPre = document.createElement('pre')
+  widthPre.style.visibility = 'hidden'
+  widthPre.style.width = 'auto'
+  widthPre.style.position = 'absolute'
+  document.getElementsByTagName('body')[0].appendChild(widthPre)
+  while widthPre.clientWidth < window.innerWidth
+    windowWidth++
+    widthPre.innerHTML += '-'
+  windowWidth = windowWidth - 1
+  document.getElementsByTagName('body')[0].removeChild(widthPre)
+  frame = new Frame('frame', windowWidth, 6)
+
+setWidth()
+
+timeOut = null
+window.onresize = ->
+  if timeOut != null
+    clearTimeout timeOut
+  timeOut = setTimeout setWidth, 100
 
 hurdles = new Items(50, 10, 20)
 coins = new Items(75, 20, 50)
@@ -302,10 +325,10 @@ tick = ->
 
   frame.clear()
 
-  for hurdle_x in hurdles.get(0+player.posX+viewportX, 80+player.posX+viewportX)
+  for hurdle_x in hurdles.get(0+player.posX+viewportX, windowWidth+player.posX+viewportX)
     frame.draw hurdle_x-player.posX-viewportX, 4, '#'
 
-  for x in coins.get(0+player.posX+viewportX, 80+player.posX+viewportX)
+  for x in coins.get(0+player.posX+viewportX, windowWidth+player.posX+viewportX)
     frame.draw x-player.posX-viewportX, 1, coinSprite.currentFrame
 
   frame.draw -viewportX, player.posY, playerSprite.currentFrame
