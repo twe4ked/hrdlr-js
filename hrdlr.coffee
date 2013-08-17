@@ -19,7 +19,7 @@ getRandomInt = (min, max) ->
 defaultName = "HURDLURR ##{getRandomInt(10000, 90000)}"
 name = localStorage.name || defaultName
 name = window.prompt 'Name:', name
-name = defaultName unless name.length
+name = defaultName unless name?.length
 localStorage.name = name
 
 class Sprite
