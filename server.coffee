@@ -23,8 +23,10 @@ server = http.createServer (request, response) ->
           else
             fs.readFile coffee_file, 'utf8', (err, content) ->
               throw err if err
-              fs.writeFile file, coffee.compile(content), (err) ->
-                throw err if err
+              js_content = coffee.compile(content)
+              response.write js_content
+              response.end()
+              fs.writeFile file, js_content
       else
         notFound response
     else
